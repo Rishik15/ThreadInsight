@@ -21,6 +21,8 @@ USER_AGENT = st.secrets["USER_AGENT"]
 
 reddit = create_reddit_instance(CLIENT_ID, CLIENT_SECRET, USER_AGENT)
 
+print(reddit.read_only)
+
 st.set_page_config(page_title="ThreadInsight")
 st.title('ThreadInsight')
 
