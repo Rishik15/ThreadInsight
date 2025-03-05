@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from datetime import datetime
+import pandas as pd
 from src.fetch import fetch_recent_posts, fetch_comments_parallel
 from src.preprocess import preprocessposts, preprocesscomments
 from dotenv import load_dotenv
@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 import matplotlib.pyplot as plt
 
 load_dotenv()
+
 st.set_page_config(page_title="ThreadInsight")
 st.title('ThreadInsight')
 
@@ -74,7 +75,6 @@ if submitted:
             )
             st.plotly_chart(fig_post_types, use_container_width=True)
 
-
             comment_summary = fetch_comment_summary(df_comments)
             st.header("Comments Summary Metrics")
             st.metric("Avg. Upvotes per Comment", comment_summary["avg_upvotes"])
@@ -86,21 +86,55 @@ if submitted:
             else:
                 st.write("No active commenters found.")
 
-            st.subheader("Comment Activity by Date")
+            st.subheader("Comment Frequency by Date (Bar)")
             st.plotly_chart(px.bar(
                 x=comment_summary["comments_per_date"].index,
                 y=comment_summary["comments_per_date"].values,
-                labels={"x": "Date", "y": "Comments"},
+                labels={"x": "Date", "y": "Frequency"},
                 color_discrete_sequence=['#003366']
             ), use_container_width=True)
 
-            st.subheader("Comment Activity by Hour")
+            st.subheader("Comment Frequency by Date (Line)")
+            st.plotly_chart(px.line(
+                x=comment_summary["comments_per_date"].index,
+                y=comment_summary["comments_per_date"].values,
+                labels={"x": "Date", "y": "Frequency"},
+                line_shape='linear',
+                markers=True
+            ), use_container_width=True)
+
+            st.subheader("Comment Frequency by Hour (Bar)")
             st.plotly_chart(px.bar(
                 x=comment_summary["comments_per_hour"].index,
                 y=comment_summary["comments_per_hour"].values,
-                labels={"x": "Hour", "y": "Comments"},
+                labels={"x": "Hour", "y": "Frequency"},
                 color_discrete_sequence=['#003366']
             ), use_container_width=True)
+
+            st.subheader("Comment Frequency by Hour (Line)")
+            st.plotly_chart(px.line(
+                x=comment_summary["comments_per_hour"].index,
+                y=comment_summary["comments_per_hour"].values,
+                labels={"x": "Hour", "y": "Frequency"},
+                line_shape='linear',
+                markers=True
+                ), use_container_width=True)
+            
+            st.header("User Insights")
+
+            most_active_users, avg_account_age, new_account_percentage = user_insights(df_posts, df_comments)
+
+            st.subheader("Top 5 Most Active Users")
+            for user, count in most_active_users.items():
+                st.write(f"- **{user}**: {count} total activities")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.metric("Average Account Age of Top Contributors (days)", avg_account_age)
+            
+            with col2:
+                 st.metric("Percentage of Posts from New Accounts", f"{new_account_percentage}%")
 
             st.header("Top Performers")
             top_posts_upvotes, top_posts_engagement, top_comments_upvotes = top_performers(df_posts, df_comments)
@@ -120,10 +154,61 @@ if submitted:
                 post_hours, x="hour", y="count", title="Post Frequency by Hour",
                 color_discrete_sequence=['#003366']
             ), use_container_width=True)
+
+            st.plotly_chart(px.line(
+                post_hours, x="hour", y="count", title="Post Frequency by Hour (Line Chart)",
+                markers=True
+            ), use_container_width=True)
+
             st.plotly_chart(px.bar(
                 post_days, x="date", y="count", title="Posts per Day",
                 color_discrete_sequence=['#003366']
             ), use_container_width=True)
+
+            st.plotly_chart(px.line(
+                post_days, x="date", y="count", title="Posts per Day (Line Chart)",
+                markers=True
+            ), use_container_width=True)
+
+            st.header("Post Activity Heatmap (Date vs Hour)")
+
+            heatmap_posts = df_posts.copy()
+            heatmap_posts['hour'] = pd.to_datetime(heatmap_posts['created_time'], format='%H:%M:%S').dt.hour
+            heatmap_posts['date'] = heatmap_posts['created_date']
+
+            post_heatmap_grouped = heatmap_posts.groupby(['date', 'hour']).size().reset_index(name='count')
+
+            fig_post_heatmap = px.density_heatmap(
+                post_heatmap_grouped,
+                x="hour",
+                y="date",
+                z="count",
+                color_continuous_scale="Blues",
+                labels={'hour': 'Hour of Day', 'date': 'Date', 'count': 'Post Count'},
+                nbinsx=24
+            )
+
+            st.plotly_chart(fig_post_heatmap, use_container_width=True)
+
+            st.header("Comment Activity Heatmap (Date vs Hour)")
+
+            heatmap_comments = df_comments.copy()
+            heatmap_comments['hour'] = pd.to_datetime(heatmap_comments['comment_created_time'], format='%H:%M:%S').dt.hour
+            heatmap_comments['date'] = heatmap_comments['comment_created_date']
+
+            comment_heatmap_grouped = heatmap_comments.groupby(['date', 'hour']).size().reset_index(name='count')
+
+            fig_comment_heatmap = px.density_heatmap(
+                comment_heatmap_grouped,
+                x="hour",
+                y="date",
+                z="count",
+                color_continuous_scale="Blues",
+                labels={'hour': 'Hour of Day', 'date': 'Date', 'count': 'Comment Count'},
+                nbinsx=24
+            )
+
+            st.plotly_chart(fig_comment_heatmap, use_container_width=True)
 
 
             st.header("Most Common Words in Posts")
@@ -163,8 +248,21 @@ if submitted:
             ax.axis('off')
             st.pyplot(fig)
 
-
-
-
     else:
         st.warning("Please enter a subreddit name.")
+
+
+st.markdown("---")
+st.header("About the Creator")
+
+st.markdown("""
+Hi! I'm **Rishik Reddy Yesgari**, a passionate Data Science and Machine Learning enthusiast.  
+I built **ThreadInsight** to provide meaningful insights from subreddit activity with a focus on engagement, patterns, and community behavior.
+
+### 📬 Contact Me:
+- **LinkedIn:** [Rishik Reddy Yesgari](https://www.linkedin.com/in/rishikreddyyesgari/)
+- **Email:** ry248@njit.edu
+- **GitHub:** [github.com/RishikYesgari](https://github.com/RishikYesgari)
+
+Thanks for using ThreadInsight! 🚀
+""")
