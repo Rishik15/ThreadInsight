@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from pathlib import Path
 import base64
-from src.fetch import fetch_recent_posts, fetch_comments_parallel
+from src.fetch import create_reddit_instance, fetch_recent_posts, fetch_comments_parallel
 from src.preprocess import preprocessposts, preprocesscomments
 from dotenv import load_dotenv
 from helper import (
@@ -15,7 +15,11 @@ import wordcloud
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 import matplotlib.pyplot as plt
 
-load_dotenv()
+CLIENT_ID = st.secrets["CLIENT_ID"]
+CLIENT_SECRET = st.secrets["CLIENT_SECRET"]
+USER_AGENT = st.secrets["USER_AGENT"]
+
+reddit = create_reddit_instance(CLIENT_ID, CLIENT_SECRET, USER_AGENT)
 
 st.set_page_config(page_title="ThreadInsight")
 st.title('ThreadInsight')
@@ -79,8 +83,8 @@ with st.form("subreddit_form"):
 if submitted:
     if subreddit_name:
         with st.spinner(f"Fetching data from the past 3 days in r/{subreddit_name}. Please wait..."):
-            posts, subscribers = fetch_recent_posts(subreddit_name)
-            comments = fetch_comments_parallel(posts)
+            posts, subscribers = fetch_recent_posts(subreddit_name, reddit)
+            comments = fetch_comments_parallel(posts, reddit)
             status_placeholder = st.empty()
 
             if not posts:

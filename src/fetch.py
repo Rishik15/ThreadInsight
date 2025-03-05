@@ -3,26 +3,27 @@ import praw
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 import prawcore
-import os
-
-reddit = praw.Reddit(
-    client_id=os.getenv("CLIENT_ID"),
-    client_secret=os.getenv("CLIENT_SECRET"),
-    user_agent=os.getenv("USER_AGENT")
-)
 
 days_to_fetch = 3
 max_posts = 500
 post_workers = 2
 comment_workers = 3
-subscribers = None
 
-def fetch_recent_posts(subreddit_name):
+
+def create_reddit_instance(client_id, client_secret, user_agent):
+    return praw.Reddit(
+        client_id=client_id,
+        client_secret=client_secret,
+        user_agent=user_agent
+    )
+
+
+def fetch_recent_posts(subreddit_name, reddit):
     all_posts = []
 
     try:
         subreddit_instance = reddit.subreddit(subreddit_name)
-        subreddit_instance.id 
+        subreddit_instance.id
     except prawcore.exceptions.NotFound:
         raise ValueError(f"Subreddit '{subreddit_name}' does not exist.")
 
@@ -94,12 +95,12 @@ def fetch_recent_posts(subreddit_name):
                 all_posts.append(result)
 
             if count % 100 == 0:
-                 time.sleep(1)
+                time.sleep(1)
 
     return all_posts, subscribers
 
 
-def fetch_comments(post_id):
+def fetch_comments(post_id, reddit):
     backoff_time = 2
     while True:
         try:
@@ -126,10 +127,10 @@ def fetch_comments(post_id):
                 return []
 
 
-def fetch_comments_parallel(posts):
+def fetch_comments_parallel(posts, reddit):
     all_comments = []
     with ThreadPoolExecutor(max_workers=comment_workers) as executor:
-        future_to_post = {executor.submit(fetch_comments, post["id"]): post["id"] for post in posts}
+        future_to_post = {executor.submit(fetch_comments, post["id"], reddit): post["id"] for post in posts}
 
         for count, future in enumerate(as_completed(future_to_post), start=1):
             post_id = future_to_post[future]
