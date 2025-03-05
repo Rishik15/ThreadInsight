@@ -1,6 +1,8 @@
 import streamlit as st
 import time
 import pandas as pd
+from pathlib import Path
+import base64
 from src.fetch import fetch_recent_posts, fetch_comments_parallel
 from src.preprocess import preprocessposts, preprocesscomments
 from dotenv import load_dotenv
@@ -17,6 +19,58 @@ load_dotenv()
 
 st.set_page_config(page_title="ThreadInsight")
 st.title('ThreadInsight')
+
+image_path = Path(__file__).parent / "images"
+
+def get_image_base64(path):
+    with open(path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+gmail_icon = get_image_base64(image_path / "gmail.png")
+linkedin_icon = get_image_base64(image_path / "linkedin.png")
+github_icon = get_image_base64(image_path / "github.png")
+
+st.markdown("""
+<style>
+.about-container {
+    border: 1px solid #5c5c5c;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.contact-icon {
+    vertical-align: middle;
+    margin-right: 8px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown(f"""
+<div class="about-container">
+
+**ThreadInsight** is a Reddit analysis tool designed to provide deep insights into any subreddit.  It visualizes post and comment activity, top contributors, engagement metrics, heatmaps of active times, common keywords, and more — helping you easily understand the dynamics of online communities.
+
+---
+
+**Creator:** Rishik Reddy Yesgari  
+
+<a href="https://www.linkedin.com/in/rishikreddyyesgari/" target="_blank">
+    <img class="contact-icon" src="data:image/png;base64,{linkedin_icon}" width="18"> LinkedIn
+</a>  
+<br>
+<a href="https://github.com/Rishik15" target="_blank">
+    <img class="contact-icon" src="data:image/png;base64,{github_icon}" width="18"> GitHub
+</a>
+<br>
+<a href="mailto:rishikreddy.yesgari@gmail.com">
+    <img class="contact-icon" src="data:image/png;base64,{gmail_icon}" width="18"> Email
+</a>  
+
+
+</div>
+""", unsafe_allow_html=True)
+
 
 with st.form("subreddit_form"):
     subreddit_name = st.text_input("Enter the subreddit name (without r/):", placeholder="e.g., learnpython")
@@ -251,18 +305,3 @@ if submitted:
     else:
         st.warning("Please enter a subreddit name.")
 
-
-st.markdown("---")
-st.header("About the Creator")
-
-st.markdown("""
-Hi! I'm **Rishik Reddy Yesgari**, a passionate Data Science and Machine Learning enthusiast.  
-I built **ThreadInsight** to provide meaningful insights from subreddit activity with a focus on engagement, patterns, and community behavior.
-
-### 📬 Contact Me:
-- **LinkedIn:** [Rishik Reddy Yesgari](https://www.linkedin.com/in/rishikreddyyesgari/)
-- **Email:** ry248@njit.edu
-- **GitHub:** [github.com/RishikYesgari](https://github.com/RishikYesgari)
-
-Thanks for using ThreadInsight! 🚀
-""")
