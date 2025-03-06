@@ -2,8 +2,6 @@
 
 ThreadInsight is a Reddit analysis tool that provides insights into any subreddit. It helps you explore recent activity, engagement, top contributors, common keywords, and more. The goal is to help users easily understand how a subreddit functions through clean visualizations and metrics.
 
----
-
 ## Features
 
 - Analyze subreddit activity from the past 3 days
@@ -18,8 +16,6 @@ ThreadInsight is a Reddit analysis tool that provides insights into any subreddi
   - Heatmaps of activity by hour and date
   - Word cloud of common words
 - Identify top-performing posts and comments
-
----
 
 ## Creator
 
