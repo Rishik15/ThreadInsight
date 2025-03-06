@@ -2,6 +2,11 @@
 
 ThreadInsight is a Reddit analysis tool that provides insights into any subreddit. It helps you explore recent activity, engagement, top contributors, common keywords, and more. The goal is to help users easily understand how a subreddit functions through clean visualizations and metrics.
 
+## Live Demo
+
+You can try the app here:  
+https://threadinsight.streamlit.app/
+
 ## Features
 
 - Analyze subreddit activity from the past 3 days
