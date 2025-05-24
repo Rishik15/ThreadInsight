@@ -27,5 +27,4 @@ https://threadinsight.streamlit.app/
 Rishik Reddy Yesgari  
 
 - [LinkedIn](https://www.linkedin.com/in/rishikreddyyesgari/)  
-- [GitHub](https://github.com/Rishik15)  
 - Email: [rishikreddy.yesgari@gmail.com](mailto:rishikreddy.yesgari@gmail.com)
